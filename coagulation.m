@@ -197,39 +197,10 @@ title('export flux DT')
 xlabel('size')
 ylabel('\mu g C m^{-2} d^{-1}') 
 
-%% Solution
-% Msol  = fsolve(@(M) interactions(M(:),m,xz,bi,bj,nR,nD,q,a,b300,b301,b310,b311,f00,f01,f10,f11,alpha,beta,wWhites,L,H,prod,remin,pfrag,frag_div),prod(:));
-% 
-% Nsol = reshape(Msol,nD,nR)./m;
-% M = reshape(Msol,nD,nR);
-% 
-% export = wWhites.*M/H;
-% export_x = sum(export,1);
-% 
-% figure
-% surface(x(1:end),z,Nsol(:,1:end))
-% colorbar
-% title('N sol')
-% set(gca,'ColorScale','log')
-% set(gca,'ZScale','log')
-% 
-% figure
-% surface(x,z,M)
-% colorbar
-% title('M sol')
-% set(gca,'ColorScale','log')
-% set(gca,'ZScale','log')
-% 
-% figure
-% semilogx(2*1E-4*r(x),export_x,'LineWidth',2)
-% title('export flux')
-% xlabel('Diameter [cm]')
-% ylabel('\mu g C m^{-2} d^{-1}') 
-% set(gca,'FontSize',16)
+
 
 %% for annual retreat
 NN = sum(N2(:,2:end),1);
-%NN = sum(Nsol(:,2:end),1);
 DELTA = r(x(2:end))-r(x(1:end-1));
 NNN = NN*1E2./DELTA;
 
