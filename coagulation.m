@@ -8,10 +8,10 @@ rMin = 1 ; %[\mu m] min radius
 a = 2; %fractal dimension
 rho_sw = 1.027E-6; % density of seawater [\mug \mu m^-3] (from andy)
 nu = 1E-6; % [m^2 s^-1] kinematic viscosity of seawater (from andy)
-mu = nu*rho_sw*10^9;% [kg m^-1 s^-1  ] absolute viscosity (10^9 is a conversion factor for rho to kg/m^3)
-alpha =1; %stickiness
+mu = nu*rho_sw*10^9;% [kg m^-1 s^-1  ] absolute viscosity (10^9 is a conversion factor for rho to kg/m^3) 
+alpha =0.1; %stickiness
 kb = 1.38065E-23; %Boltzmann constant [m^2 kg s^-2 K^-1]
-epsilon = 1E-8; % [m^2 s^-3] %energy dissipation rate (McCave 1984) (converted from 1E-4 cm^2 s^-3)
+epsilon = 1E-8; % [m^2 s^-3] %energy dissipation rate (McCave 1984) (converted from 1E-4 cm^2 s^-3)(1E-8)
 remin = 0.1; % [d^-1] Remineralisation rate
 
 H = 50; %[m] depth of mixed layer
@@ -90,7 +90,7 @@ Re = 2E-6.*r(xMesh).*w_tmp./nu;
 fRe = 24./Re + 6./(1+Re.^0.5)+0.4;
 w_it = sqrt((8E-6*r(xMesh).*9.81*1E9.*y(xMesh,zMesh))./(3E9*rho_sw.*fRe));
 tick = 0;
-while max(w_tmp./w_it,[],'all')>2 %iterate until converged (within 0.5-2 times the previous)
+while max(w_tmp./w_it,[],'all')>1 %iterate until converged (within 0.5-2 times the previous)
     w_tmp =w_it;
     Re = 2E-6.*r(xMesh).*w_it./nu;
     fRe = 24./Re + 6./(1+Re.^0.5)+0.4;
@@ -127,8 +127,8 @@ beta_d = 0.5*pi*(1E-6*r(xi)).^2.*abs(wVeci-wVecj); % [m^3/s], double checked
 beta = (beta_b + beta_s + beta_d)*3600*24; %[m^3 d^-1]
 
 
-
-beta = zeros(size(beta))+1E-4;
+%beta = 1E-4;
+%beta = zeros(size(beta))+1E-4;
 %% Fragmentation
 
 
@@ -162,13 +162,13 @@ elseif nR ==30 && nD ==15
 else
     M = prod;
 end
-
+%load('./init/M_20_10_beta.mat')
 
 N = M./m;
 
 %% Transient solution 
 options = odeset('NonNegative',1:length(M(:)));
-[t,dM] = ode23(@interactionsDT, [0:365*10], [M(:) ],options,m,xz,bi,bj,nR,nD,q,a,b300,b301,b310,b311,f00,f01,f10,f11,alpha,beta,wWhites,L,H,prod,remin,pfrag,frag_div);
+[t,dM] = ode23(@interactionsDT, [0:3000], [M(:) ],options,m,xz,bi,bj,nR,nD,q,a,b300,b301,b310,b311,f00,f01,f10,f11,alpha,beta,wWhites,L,H,prod,remin,pfrag,frag_div);
         
 M = reshape(dM(end,:),nD,nR);
 
@@ -196,10 +196,12 @@ end
 
 exportDT = wWhites.*M/H;
 exportDT_x = sum(exportDT,1);
+exportFlux = sum(exportDT,'all','omitnan')*1E-3 %[mgC/m2/d]
 
 figure
 plot(x,exportDT_x)
 title('export flux DT')
+text(0.01, 0.95, ['Export flux ~ ',num2str(round(exportFlux)),'mgC/m^2/d'] ,'Units','normalized')
 xlabel('size')
 ylabel('\mu g C m^{-2} d^{-1}') 
 
@@ -277,8 +279,9 @@ W_PL062 = w_PL(r(x),0.62,B062);
 
 figure
 loglog(r(x),W,'b-',r(x),wWhites,'r-')
-% hold on
-% loglog(1E-3*r(1,:),W_PL117,'r-')
+ hold on
+ loglog(r(x),W_PL117,'g-')
+ loglog(r(x),W_PL062,'m-')
 %xlim([1E2 r(x(end))])
 %ylim([0 1000])
 ylabel('Sinking velocity [m d^{-1}]')

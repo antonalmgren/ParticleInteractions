@@ -27,16 +27,22 @@ for k = 1:length(bi)
     d10 = b310(k) + 1;
     d11 = b311(k) + 1;
     
-    dN = alpha*beta(k)*N(ii)*N(jj);
+    
+    if length(beta) ==1;
+        dN = alpha*beta*N(ii)*N(jj);
+    else
+        dN = alpha*beta(k)*N(ii)*N(jj);
+    end
+    
 
-    %if dN > 0
+    if dN > 0
         dM(ii) = dM(ii)-dN*m(ii);
         dM(jj) = dM(jj)-dN*m(jj);
         dM(d00) = dM(d00) + f00(k)*dN*(m(ii)+m(jj)); 
         dM(d01) = dM(d01) + f01(k)*dN*(m(ii)+m(jj)); 
         dM(d10) = dM(d10) + f10(k)*dN*(m(ii)+m(jj)); 
         dM(d11) = dM(d11) + f11(k)*dN*(m(ii)+m(jj));
-    %end
+    end
 end
 
 %% Degradation
