@@ -5,11 +5,11 @@ close all
 %% constants
 rMax = 1E4; %[\mu m] max radius
 rMin = 1 ; %[\mu m] min radius
-a = 2.4; %fractal dimension
+a = 2; %fractal dimension
 rho_sw = 1.027E-6; % density of seawater [\mug \mu m^-3] (from andy)
 nu = 1E-6; % [m^2 s^-1] kinematic viscosity of seawater (from andy)
 mu = nu*rho_sw*10^9;% [kg m^-1 s^-1  ] absolute viscosity (10^9 is a conversion factor for rho to kg/m^3)
-alpha =.1; %stickiness
+alpha =1; %stickiness
 kb = 1.38065E-23; %Boltzmann constant [m^2 kg s^-2 K^-1]
 epsilon = 1E-8; % [m^2 s^-3] %energy dissipation rate (McCave 1984) (converted from 1E-4 cm^2 s^-3)
 remin = 0.1; % [d^-1] Remineralisation rate
@@ -126,13 +126,19 @@ beta_d = 0.5*pi*(1E-6*r(xi)).^2.*abs(wVeci-wVecj); % [m^3/s], double checked
  
 beta = (beta_b + beta_s + beta_d)*3600*24; %[m^3 d^-1]
 
-%beta = zeros(size(beta))+1E-4;
+
+
+beta = zeros(size(beta))+1E-4;
 %% Fragmentation
 
 
 pfrag = linspace(0.001,0.5,nR);
 pfrag = repmat(pfrag,nD,1);
 pfrag = pfrag./(rho_sw+y(xMesh,zMesh))*1E-6;
+denfrag = linspace(1,0.5,nD);
+for i = 1:nR
+    pfrag(:,i) = pfrag(:,i).*denfrag';
+end
 pfrag = pfrag(:);
 frag_div = 0.5;
 
@@ -140,7 +146,7 @@ frag_div = 0.5;
 N = zeros(nD,nR); %number of particles/m^3 
 M = zeros(nD,nR); % [\mug C/ m^3 
 m = mass(xMesh,zMesh) ;
-prod_tot = 1E7; %0.1 g/m2/d
+prod_tot = 1E5; %0.1 g/m2/d
 prod = zeros(size(M));
 
 prod(:,1) = prod_tot/nD;
@@ -164,21 +170,21 @@ N = M./m;
 options = odeset('NonNegative',1:length(M(:)));
 [t,dM] = ode23(@interactionsDT, [0:365*10], [M(:) ],options,m,xz,bi,bj,nR,nD,q,a,b300,b301,b310,b311,f00,f01,f10,f11,alpha,beta,wWhites,L,H,prod,remin,pfrag,frag_div);
         
-M2 = reshape(dM(end,:),nD,nR);
+M = reshape(dM(end,:),nD,nR);
 
 RMSE = rms(dM(end,:)-dM(end-1,:))
 
 
 figure
-surface(x,z,M2)
+surface(x,z,M)
 title('M transient')
 colorbar
 set(gca,'ColorScale','log')
 
-N2 = M2./m;
+N = M./m;
 
 figure
-surface(x,z,N2)
+surface(x,z,N)
 title('N transient')
 colorbar
 set(gca,'ColorScale','log')
@@ -188,7 +194,7 @@ for i = 1:length(t)
     MM(:,:,i) = reshape(dM(i,:),nD,nR);
 end
 
-exportDT = wWhites.*M2/H;
+exportDT = wWhites.*M/H;
 exportDT_x = sum(exportDT,1);
 
 figure
@@ -200,28 +206,40 @@ ylabel('\mu g C m^{-2} d^{-1}')
 
 
 %% for annual retreat
-NN = sum(N2(:,2:end),1);
-DELTA = r(x(2:end))-r(x(1:end-1));
-NNN = NN*1E2./DELTA;
+% NN = sum(N(:,2:end),1);
+% DELTA = r(x(2:end))-r(x(1:end-1));
+% NNN = NN*1E2./DELTA;
+Nc = sum(N,1)*1E-6; % sum and change to #/cm^3
+DELTA = 1E-4*r(1:nR);
+NNN = Nc./DELTA;
+
+
+
+slope  = @(x,b)   1E-4*x.^(-b); 
 
 
 figure
-loglog(2*r(x(2:end))*1E-4,NNN, 'LineWidth',2)
+loglog(2*r(x)*1E-4,NNN, 'LineWidth',2)
+hold on
+plot(2*r(x)*1E-4,slope(2*r(x)*1E-4,2))
+plot(2*r(x)*1E-4,slope(2*r(x)*1E-4,3))
+plot(2*r(x)*1E-4,slope(2*r(x)*1E-4,4))
 title('Particle size spectrum')
 xlabel('Particle Diameter [cm]')
 ylabel('Number spectrum [# cm^{-4}]')
+legend('Size spectrum', 'slope = -2','slope = -3','slope = -4','Location','SouthWest')
 set(gca,'FontSize',16)
 
 
 %%
-N3 = N2;
+N3 = N;
 N3(N3==0) = NaN;
 N3 = log(N3);
 %N3 = log10(N3);
 N3 = N3+abs(min(N3,[],'all'));
 N3(N3==0) = NaN;
 
-w_weight = sum(wWhites.*N2,1)./sum(N2,1);
+w_weight = sum(wWhites.*N,1)./sum(N,1);
 
 figure
 loglog(r(x),w_weight,'-','LineWidth',2) 
