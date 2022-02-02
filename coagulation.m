@@ -157,19 +157,27 @@ prod(:,1) = prod_tot/nD;
 
 if nR == 20 && nD == 10
     load('./init/M_20_10.mat')
+    disp('loaded M_20_10.mat')
 elseif nR ==30 && nD ==15
     load('./init/M_30_15.mat')
+    disp('loaded M_30_15.mat')
+elseif length(beta)==1
+    load('./init/M_20_10_beta4.mat')
+    disp('loaded M_20_10_beta4.mat')
+    
 else
     M = prod;
+    disp('without spinup')
 end
 %load('./init/M_20_10_beta.mat')
 
 N = M./m;
 
 %% Transient solution 
+tic
 options = odeset('NonNegative',1:length(M(:)));
 [t,dM] = ode23(@interactionsDT, [0:3000], [M(:) ],options,m,xz,bi,bj,nR,nD,q,a,b300,b301,b310,b311,f00,f01,f10,f11,alpha,beta,wWhites,L,H,prod,remin,pfrag,frag_div);
-        
+runtime = toc        
 M = reshape(dM(end,:),nD,nR);
 
 RMSE = rms(dM(end,:)-dM(end-1,:))
@@ -255,6 +263,17 @@ title('Mean sinking velocity of aggregates')
 %Weight sinking speed by particle numbers
 
 
+%% Diagnostics
+
+for i = 1:length(t)
+    Mt = reshape(dM(i,:),nD,nR);
+    [Mdt,Mremin,Mfrag] = interactionsDT(t(i),Mt(:),m,xz,bi,bj,nR,nD,q,a,b300,b301,b310,b311,f00,f01,f10,f11,alpha,beta,wWhites,L,H,prod,remin,pfrag,frag_div);
+    frag(i) = sum(Mfrag);
+    COM(i) = sum(Mdt)-sum(Mremin)+sum(Mt(:).*wWhites(:)/H)-sum(prod(:)) ;
+end
+
+figure
+plot(t,COM)
 %% w comparison
 
 B117 = 1.10; % [cm^-0.17 s^-1] (Kries & Evans 2000)

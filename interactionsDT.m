@@ -1,4 +1,4 @@
-function [dMdt] = interactionsDT(t,M,m,xz,bi,bj,nR,nD,q,a,b300,b301,b310,b311,f00,f01,f10,f11,alpha,beta,wWhites,L,H,prod,remin,pfrag,frag_div)
+function [dMdt,dMremin,dMfrag] = interactionsDT(t,M,m,xz,bi,bj,nR,nD,q,a,b300,b301,b310,b311,f00,f01,f10,f11,alpha,beta,wWhites,L,H,prod,remin,pfrag,frag_div)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 M(M<0) = 0;
@@ -46,6 +46,7 @@ for k = 1:length(bi)
 end
 
 %% Degradation
+if remin~=0
 for i = 1:length(N)
     tmp = xz(i-1);
     xtmp = tmp(1);
@@ -56,9 +57,9 @@ for i = 1:length(N)
     else
         dN_remin = remin*q^xtmp *((1-q)/(3-a))*((ztmp+1)*N(i+1)-ztmp*N(i));
     end
-    dMremin(i) = dMremin(i) + dN_remin*m(i);
+    dMremin(i) = dN_remin*m(i);
 end
-
+end
 %% Fragmentation
 for i  = 1:length(M)
     if i< nD+1
@@ -72,6 +73,10 @@ end
  
 
 %% collecting
+
+if sum(dMfrag) >1E-5
+    keyboard
+end
 
 dMdt = dM +prod(:) - M.*wWhites(:)./H +dMremin +dMfrag;
 
