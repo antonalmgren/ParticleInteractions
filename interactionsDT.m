@@ -9,12 +9,7 @@ dMremin = zeros(size(dM));
 dMfrag = zeros(size(dM));
 
 %% Aggregation
-% Keep inside state space
-b300(b300>(L-1)) = L-1;
-b301(b301>(L-1)) = L-1;
-b310(b310>(L-1)) = b310(b310>(L-1))-nD;
-b311(b311>(L-1)) = b311(b311>(L-1))-nD;
-b311(b311>(L-1)) = b311(b311>(L-1)) -1;
+
 
 %N = N(:);
 
@@ -22,6 +17,9 @@ for k = 1:length(bi)
     
     ii = bi(k)+1;
     jj = bj(k)+1;
+    mi = m(ii);
+    mj = m(jj);
+    mij = m(ii)+m(jj);
     d00 = b300(k) + 1;
     d01 = b301(k) + 1;
     d10 = b310(k) + 1;
@@ -36,12 +34,18 @@ for k = 1:length(bi)
     
 
     if dN > 0
-        dM(ii) = dM(ii)-dN*m(ii);
-        dM(jj) = dM(jj)-dN*m(jj);
-        dM(d00) = dM(d00) + f00(k)*dN*(m(ii)+m(jj)); 
-        dM(d01) = dM(d01) + f01(k)*dN*(m(ii)+m(jj)); 
-        dM(d10) = dM(d10) + f10(k)*dN*(m(ii)+m(jj)); 
-        dM(d11) = dM(d11) + f11(k)*dN*(m(ii)+m(jj));
+%         dM(ii) = dM(ii)-dN*m(ii);
+%         dM(jj) = dM(jj)-dN*m(jj);
+%         dM(d00) = dM(d00) + f00(k)*dN*(m(ii)+m(jj)); 
+%         dM(d01) = dM(d01) + f01(k)*dN*(m(ii)+m(jj)); 
+%         dM(d10) = dM(d10) + f10(k)*dN*(m(ii)+m(jj)); 
+%         dM(d11) = dM(d11) + f11(k)*dN*(m(ii)+m(jj));
+        dM(ii) = dM(ii)-dN*mi;
+        dM(jj) = dM(jj)-dN*mj;
+        dM(d00) = dM(d00) + f00(k)*dN*mij; 
+        dM(d01) = dM(d01) + f01(k)*dN*mij; 
+        dM(d10) = dM(d10) + f10(k)*dN*mij; 
+        dM(d11) = dM(d11) + f11(k)*dN*mij;
     end
 end
 

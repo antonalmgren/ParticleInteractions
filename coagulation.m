@@ -11,7 +11,7 @@ nu = 1E-6; % [m^2 s^-1] kinematic viscosity of seawater (from andy)
 mu = nu*rho_sw*10^9;% [kg m^-1 s^-1  ] absolute viscosity (10^9 is a conversion factor for rho to kg/m^3) 
 alpha =0.1; %stickiness
 kb = 1.38065E-23; %Boltzmann constant [m^2 kg s^-2 K^-1]
-epsilon = 1E-8; % [m^2 s^-3] %energy dissipation rate (McCave 1984) (converted from 1E-4 cm^2 s^-3)(1E-8)
+epsilon = 1E-6; % [m^2 s^-3] %energy dissipation rate (McCave 1984) (converted from 1E-4 cm^2 s^-3)(1E-8)
 remin = 0.1; % [d^-1] Remineralisation rate
 
 H = 50; %[m] depth of mixed layer
@@ -75,6 +75,12 @@ f00 = dx0.*dz0; %determining the fraction going into each bin
 f10 = dx1.*dz0;
 f01 = dx0.*dz1;
 f11 = dx1.*dz1;
+% Keep inside state space
+b300(b300>(L-1)) = L-1;
+b301(b301>(L-1)) = L-1;
+b310(b310>(L-1)) = b310(b310>(L-1))-nD;
+b311(b311>(L-1)) = b311(b311>(L-1))-nD;
+b311(b311>(L-1)) = b311(b311>(L-1)) -1;
 
 %% environmental variables
 T = 281; %temperature
@@ -127,8 +133,15 @@ beta_d = 0.5*pi*(1E-6*r(xi)).^2.*abs(wVeci-wVecj); % [m^3/s], double checked
 beta = (beta_b + beta_s + beta_d)*3600*24; %[m^3 d^-1]
 
 
-%beta = 1E-4;
-%beta = zeros(size(beta))+1E-4;
+%% beta rectilinear turbulent shear
+
+%beta = 1.3*(epsilon/nu)^0.5*(1E-6*(r(xi)+r(xj))).^3*24*3600;
+%%
+for i = 1:nR
+    for j = 1:nR
+        betaplot(i,j)= 1.3*(epsilon/nu)^0.5*(1E-6*(r(x(i))+r(x(j)))).^3*24*3600;
+    end
+end
 %% Fragmentation
 
 
@@ -176,12 +189,24 @@ N = M./m;
 %% Transient solution 
 tic
 options = odeset('NonNegative',1:length(M(:)));
-[t,dM] = ode23(@interactionsDT, [0:3000], [M(:) ],options,m,xz,bi,bj,nR,nD,q,a,b300,b301,b310,b311,f00,f01,f10,f11,alpha,beta,wWhites,L,H,prod,remin,pfrag,frag_div);
+[t,dM] = ode23(@interactionsDT, [0:500], [M(:) ],options,m,xz,bi,bj,nR,nD,q,a,b300,b301,b310,b311,f00,f01,f10,f11,alpha,beta,wWhites,L,H,prod,remin,pfrag,frag_div);
 runtime = toc        
 M = reshape(dM(end,:),nD,nR);
 
 RMSE = rms(dM(end,:)-dM(end-1,:))
 
+SA.M = M;
+SA.a = a;
+SA.alpha = alpha;
+SA.epsilon = epsilon;
+SA.beta = betaplot;
+SA.RMSE = RMSE;
+SA.wWhites = wWhites;
+
+save('./init/M_20_10.mat','M')
+
+
+%%
 
 figure
 surface(x,z,M)
@@ -216,9 +241,7 @@ ylabel('\mu g C m^{-2} d^{-1}')
 
 
 %% for annual retreat
-% NN = sum(N(:,2:end),1);
-% DELTA = r(x(2:end))-r(x(1:end-1));
-% NNN = NN*1E2./DELTA;
+
 Nc = sum(N,1)*1E-6; % sum and change to #/cm^3
 DELTA = 1E-4*r(1:nR);
 NNN = Nc./DELTA;
