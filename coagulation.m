@@ -11,7 +11,7 @@ nu = 1E-6; % [m^2 s^-1] kinematic viscosity of seawater (from andy)
 mu = nu*rho_sw*10^9;% [kg m^-1 s^-1  ] absolute viscosity (10^9 is a conversion factor for rho to kg/m^3) 
 alpha =0.1; %stickiness
 kb = 1.38065E-23; %Boltzmann constant [m^2 kg s^-2 K^-1]
-epsilon = 1E-6; % [m^2 s^-3] %energy dissipation rate (McCave 1984) (converted from 1E-4 cm^2 s^-3)(1E-8)
+epsilon = 1E-7; % [m^2 s^-3] %energy dissipation rate (McCave 1984) (converted from 1E-4 cm^2 s^-3)(1E-8)
 remin = 0.1; % [d^-1] Remineralisation rate
 
 H = 50; %[m] depth of mixed layer
@@ -136,12 +136,12 @@ beta = (beta_b + beta_s + beta_d)*3600*24; %[m^3 d^-1]
 %% beta rectilinear turbulent shear
 
 %beta = 1.3*(epsilon/nu)^0.5*(1E-6*(r(xi)+r(xj))).^3*24*3600;
-%%
-for i = 1:nR
-    for j = 1:nR
-        betaplot(i,j)= 1.3*(epsilon/nu)^0.5*(1E-6*(r(x(i))+r(x(j)))).^3*24*3600;
-    end
-end
+% %%
+%for i = 1:nR
+%    for j = 1:nR
+%        betaplot(i,j)= 1.3*(epsilon/nu)^0.5*(1E-6*(r(x(i))+r(x(j)))).^3*24*3600;
+%    end
+%end
 %% Fragmentation
 
 
@@ -167,21 +167,21 @@ prod(:,1) = prod_tot/nD;
 % prod(1:3,1) = prod_tot/10/H; 
 % prod(4:10,6) = prod_tot/10/H;
 % prod(3,11)=prod_tot/10/H;
-
-if nR == 20 && nD == 10
-    load('./init/M_20_10.mat')
-    disp('loaded M_20_10.mat')
-elseif nR ==30 && nD ==15
-    load('./init/M_30_15.mat')
-    disp('loaded M_30_15.mat')
-elseif length(beta)==1
-    load('./init/M_20_10_beta4.mat')
-    disp('loaded M_20_10_beta4.mat')
-    
-else
+% 
+% if nR == 20 && nD == 10
+%     load('./init/M_20_10.mat')
+%     disp('loaded M_20_10.mat')
+% elseif nR ==30 && nD ==15
+%     load('./init/M_30_15.mat')
+%     disp('loaded M_30_15.mat')
+% elseif length(beta)==1
+%     load('./init/M_20_10_beta4.mat')
+%     disp('loaded M_20_10_beta4.mat')
+%     
+% else
     M = prod;
     disp('without spinup')
-end
+% end
 %load('./init/M_20_10_beta.mat')
 
 N = M./m;
@@ -189,7 +189,7 @@ N = M./m;
 %% Transient solution 
 tic
 options = odeset('NonNegative',1:length(M(:)));
-[t,dM] = ode23(@interactionsDT, [0:500], [M(:) ],options,m,xz,bi,bj,nR,nD,q,a,b300,b301,b310,b311,f00,f01,f10,f11,alpha,beta,wWhites,L,H,prod,remin,pfrag,frag_div);
+[t,dM] = ode23(@interactionsDT, [0:10000], [M(:) ],options,m,xz,bi,bj,nR,nD,q,a,b300,b301,b310,b311,f00,f01,f10,f11,alpha,beta,wWhites,L,H,prod,remin,pfrag,frag_div);
 runtime = toc        
 M = reshape(dM(end,:),nD,nR);
 
@@ -199,7 +199,7 @@ SA.M = M;
 SA.a = a;
 SA.alpha = alpha;
 SA.epsilon = epsilon;
-SA.beta = betaplot;
+%SA.beta = betaplot;
 SA.RMSE = RMSE;
 SA.wWhites = wWhites;
 
