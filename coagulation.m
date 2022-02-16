@@ -3,15 +3,15 @@ clear all
 close all
 % first part to be used in parameters.m
 %% constants
-rMax = 1E4; %[\mu m] max radius
+rMax = 1E5; %[\mu m] max radius
 rMin = 1 ; %[\mu m] min radius
-a = 2; %fractal dimension
+a = 1.6; %fractal dimension
 rho_sw = 1.027E-6; % density of seawater [\mug \mu m^-3] (from andy)
 nu = 1E-6; % [m^2 s^-1] kinematic viscosity of seawater (from andy)
 mu = nu*rho_sw*10^9;% [kg m^-1 s^-1  ] absolute viscosity (10^9 is a conversion factor for rho to kg/m^3) 
 alpha =0.1; %stickiness
 kb = 1.38065E-23; %Boltzmann constant [m^2 kg s^-2 K^-1]
-epsilon = 1E-7; % [m^2 s^-3] %energy dissipation rate (McCave 1984) (converted from 1E-4 cm^2 s^-3)(1E-8)
+epsilon = 1E-6; % [m^2 s^-3] %energy dissipation rate (McCave 1984) (converted from 1E-4 cm^2 s^-3)(1E-8)
 remin = 0.1; % [d^-1] Remineralisation rate
 
 H = 50; %[m] depth of mixed layer
@@ -162,9 +162,10 @@ m = mass(xMesh,zMesh) ;
 prod_tot = 1E5; %0.1 g/m2/d
 prod = zeros(size(M));
 
-prod(:,1) = prod_tot/nD;
-
-% prod(1:3,1) = prod_tot/10/H; 
+%prod(:,1) = prod_tot/nD;
+prod(1,1) = 10*prod_tot/20/H;
+ prod(2:3,1) = 2*prod_tot/20/H; 
+ prod(4:10) = prod_tot/20/H; 
 % prod(4:10,6) = prod_tot/10/H;
 % prod(3,11)=prod_tot/10/H;
 % 
@@ -203,7 +204,7 @@ SA.epsilon = epsilon;
 SA.RMSE = RMSE;
 SA.wWhites = wWhites;
 
-save('./init/M_20_10.mat','M')
+%save('./init/M_20_10.mat','M')
 
 
 %%
@@ -213,6 +214,7 @@ surface(x,z,M)
 title('M transient')
 colorbar
 set(gca,'ColorScale','log')
+
 
 N = M./m;
 
@@ -243,24 +245,26 @@ ylabel('\mu g C m^{-2} d^{-1}')
 %% for annual retreat
 
 Nc = sum(N,1)*1E-6; % sum and change to #/cm^3
-DELTA = 1E-4*r(1:nR);
+DELTA(1) = 1E-4*r(1);
+DELTA(2:nR) = 1E-4*(r(2:nR)-r(1:nR-1));
 NNN = Nc./DELTA;
 
 
 
-slope  = @(x,b)   1E-4*x.^(-b); 
+slope  = @(x,b)   1E-5*x.^(-b); 
+
+monterey = @(x) 0.027*x.^(-2.965);
 
 
 figure
 loglog(2*r(x)*1E-4,NNN, 'LineWidth',2)
 hold on
-plot(2*r(x)*1E-4,slope(2*r(x)*1E-4,2))
-plot(2*r(x)*1E-4,slope(2*r(x)*1E-4,3))
 plot(2*r(x)*1E-4,slope(2*r(x)*1E-4,4))
+plot(2*r(x)*1E-4,monterey(2*r(x)*1E-4))
 title('Particle size spectrum')
 xlabel('Particle Diameter [cm]')
 ylabel('Number spectrum [# cm^{-4}]')
-legend('Size spectrum', 'slope = -2','slope = -3','slope = -4','Location','SouthWest')
+legend('Size spectrum','slope = -4','monterey bay','Location','SouthWest')
 set(gca,'FontSize',16)
 
 
