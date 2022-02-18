@@ -3,9 +3,9 @@ clear all
 close all
 % first part to be used in parameters.m
 %% constants
-rMax = 1E5; %[\mu m] max radius
+rMax = 1E4; %[\mu m] max radius
 rMin = 1 ; %[\mu m] min radius
-a = 1.6; %fractal dimension
+a = 1.9; %fractal dimension
 rho_sw = 1.027E-6; % density of seawater [\mug \mu m^-3] (from andy)
 nu = 1E-6; % [m^2 s^-1] kinematic viscosity of seawater (from andy)
 mu = nu*rho_sw*10^9;% [kg m^-1 s^-1  ] absolute viscosity (10^9 is a conversion factor for rho to kg/m^3) 
@@ -190,7 +190,7 @@ N = M./m;
 %% Transient solution 
 tic
 options = odeset('NonNegative',1:length(M(:)));
-[t,dM] = ode23(@interactionsDT, [0:10000], [M(:) ],options,m,xz,bi,bj,nR,nD,q,a,b300,b301,b310,b311,f00,f01,f10,f11,alpha,beta,wWhites,L,H,prod,remin,pfrag,frag_div);
+[t,dM] = ode23(@interactionsDT, [0:100000], [M(:) ],options,m,xz,bi,bj,nR,nD,q,a,b300,b301,b310,b311,f00,f01,f10,f11,alpha,beta,wWhites,L,H,prod,remin,pfrag,frag_div);
 runtime = toc        
 M = reshape(dM(end,:),nD,nR);
 
@@ -245,8 +245,9 @@ ylabel('\mu g C m^{-2} d^{-1}')
 %% for annual retreat
 
 Nc = sum(N,1)*1E-6; % sum and change to #/cm^3
-DELTA(1) = 1E-4*r(1);
-DELTA(2:nR) = 1E-4*(r(2:nR)-r(1:nR-1));
+
+DELTA(1:nR-1) = 1E-4*(r(2:nR)-r(1:nR-1));
+DELTA(nR) = 1E-4*r(nR+1)-r(nR);
 NNN = Nc./DELTA;
 
 
