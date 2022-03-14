@@ -3,9 +3,9 @@ arguments
     a (1,1) {mustBeInRange(a,0,3)} = 1.8; %self similarity parameter
     alpha (1,1) {mustBeInRange(alpha,0,1)} =0.1; %stickiness
     epsilon (1,1) {mustBeInRange(epsilon,1E-9,1E-2)} = 1E-6; % [m^2 s^-3] %energy dissipation rate 
-    nR (1,1) = 20; %number of size bins
+    nR (1,1) = 25; %number of size bins
     nD (1,1)= 10; %number of density bins
-    rMax (1,1) = 1E4; %[\mu m] max radius
+    rMax (1,1) = 1E5; %[\mu m] max radius
 end
 %% constants
 rMin = 1 ; %[\mu m] min radius
@@ -20,14 +20,14 @@ H = 50; %[m] depth of mixed layer
 %% grid and combination variables
 
 deltaR = exp(log(rMax)/(nR-1)); % size step
-deltaRho = 0.1*rho_sw/(nD-1);% 0.6*rho_sw/nD; %density step
+deltaRho = 0.8*rho_sw/(nD-1);% 0.6*rho_sw/nD; %density step
 
 q = deltaR^(a-3); % is this still valid when a is not part of delta?
 
 L = nR*nD; %number of bins: b index [0, 1, ..., L-1]
 K = (L+1)*L/2; % number of combos: k index [0, 1, ..., K-1]
 k = [0:K-1]';
-%b = [0:L-1]';
+b = [0:L-1]';
 z = (2*L + 1 - sqrt((2*L + 1).^2 - 8*k))/2;%(2*L + 1 - sqrt((2*L + 1).^2 - 8*k))/2; % SHOULD IT BE 2L or L? is this eq 4.12?
 bi = floor(z);
 bj =   k - bi*L + bi.*(bi - 1)/2 + bi;%k - bi*L + bi.*(bi-1)/2 + L (4.13)
@@ -71,14 +71,18 @@ f00 = dx0.*dz0; %determining the fraction going into each bin
 f10 = dx1.*dz0;
 f01 = dx0.*dz1;
 f11 = dx1.*dz1;
-keyboard
+%keyboard
 % Keep inside state space
 b300(b300>(L-1)) = L-1;
 b301(b301>(L-1)) = L-1;
-b310(b310>(L-1)) = b310(b310>(L-1))-nD;
-b311(b311>(L-1)) = b311(b311>(L-1))-nD;
+while any(b310>L-1)
+    b310(b310>(L-1)) = b310(b310>(L-1))-nD;
+end
+while any(b311>L)
+    b311(b311>(L-1)) = b311(b311>(L-1))-nD;
+end
 b311(b311>(L-1)) = b311(b311>(L-1)) -1;
-keyboard
+%keyboard
 %% environmental variables
 T = 281; %temperature
 
@@ -138,8 +142,10 @@ prod_tot = 1E5; %0.1 g/m2/d
 prod = zeros(size(M));
 
 prod(1,1) = 10*prod_tot;
-prod(2:3,1) = 2*prod_tot; 
-prod(4:10) = prod_tot; 
+prod(2:4,1) = 2*prod_tot; 
+prod(8:10,6) = 3*prod_tot; 
+prod(9:10,7) = 2*prod_tot;
+prod(10,8) = 2*prod_tot;
 
 prod = prod/H/(sum(prod,"all")/prod_tot);
 
@@ -166,6 +172,12 @@ sim.nD = nD;
 sim.H = H;
 sim.m = m;
 sim.w = wWhites;
+sim.prod = prod;
+sim.prod_tot = prod_tot;
+sim.r = r(x);
+sim.y = y(xMesh,zMesh);
+sim.DELTA(1:nR-1) = r(x(2:nR)-x(1:nR-1));
+sim.DELTA(nR) = r(nR+1)-r(nR);
 
 
 % SA.M = M;
