@@ -1,29 +1,25 @@
-
-clear all 
-close all
-% first part to be used in parameters.m
+function [sim] = coagulation(a,alpha,epsilon,nR,nD,rMax)
+arguments
+    a (1,1) {mustBeInRange(a,0,3)} = 1.8; %self similarity parameter
+    alpha (1,1) {mustBeInRange(alpha,0,1)} =0.1; %stickiness
+    epsilon (1,1) {mustBeInRange(epsilon,1E-9,1E-2)} = 1E-6; % [m^2 s^-3] %energy dissipation rate 
+    nR (1,1) = 20; %number of size bins
+    nD (1,1)= 10; %number of density bins
+    rMax (1,1) = 1E4; %[\mu m] max radius
+end
 %% constants
-rMax = 1E4; %[\mu m] max radius
 rMin = 1 ; %[\mu m] min radius
-a = 1.9; %fractal dimension
 rho_sw = 1.027E-6; % density of seawater [\mug \mu m^-3] (from andy)
 nu = 1E-6; % [m^2 s^-1] kinematic viscosity of seawater (from andy)
 mu = nu*rho_sw*10^9;% [kg m^-1 s^-1  ] absolute viscosity (10^9 is a conversion factor for rho to kg/m^3) 
-alpha =0.1; %stickiness
 kb = 1.38065E-23; %Boltzmann constant [m^2 kg s^-2 K^-1]
-epsilon = 1E-6; % [m^2 s^-3] %energy dissipation rate (McCave 1984) (converted from 1E-4 cm^2 s^-3)(1E-8)
 remin = 0.1; % [d^-1] Remineralisation rate
 
 H = 50; %[m] depth of mixed layer
 
 %% grid and combination variables
-nR = 20; %number of size bins
-nD = 10; %number of density bins
 
 deltaR = exp(log(rMax)/(nR-1)); % size step
-%deltaR = 1.1;
-%deltaR = 10^(log10(rMax)/nR);
-%deltaR = 2^(1/a);
 deltaRho = 0.1*rho_sw/(nD-1);% 0.6*rho_sw/nD; %density step
 
 q = deltaR^(a-3); % is this still valid when a is not part of delta?
@@ -31,7 +27,7 @@ q = deltaR^(a-3); % is this still valid when a is not part of delta?
 L = nR*nD; %number of bins: b index [0, 1, ..., L-1]
 K = (L+1)*L/2; % number of combos: k index [0, 1, ..., K-1]
 k = [0:K-1]';
-b = [0:L-1]';
+%b = [0:L-1]';
 z = (2*L + 1 - sqrt((2*L + 1).^2 - 8*k))/2;%(2*L + 1 - sqrt((2*L + 1).^2 - 8*k))/2; % SHOULD IT BE 2L or L? is this eq 4.12?
 bi = floor(z);
 bj =   k - bi*L + bi.*(bi - 1)/2 + bi;%k - bi*L + bi.*(bi-1)/2 + L (4.13)
@@ -75,21 +71,19 @@ f00 = dx0.*dz0; %determining the fraction going into each bin
 f10 = dx1.*dz0;
 f01 = dx0.*dz1;
 f11 = dx1.*dz1;
+keyboard
 % Keep inside state space
 b300(b300>(L-1)) = L-1;
 b301(b301>(L-1)) = L-1;
 b310(b310>(L-1)) = b310(b310>(L-1))-nD;
 b311(b311>(L-1)) = b311(b311>(L-1))-nD;
 b311(b311>(L-1)) = b311(b311>(L-1)) -1;
-
+keyboard
 %% environmental variables
 T = 281; %temperature
 
 %% derived properties
-%w = @(r,rho) (2.*1E9*(rho-rho_sw).*9.81.*(r*1E-6).^2)./(9*mu);% [m/s]   *24*3600; %[m d^-1] sinking velocity NB! from de la rocha and passow 2007, unit double checked
 W = w_func(xMesh,zMesh)*24*3600;%[m d^-1]
-    
-
 
 w_tmp = w_func(xMesh,zMesh);
 Re = 2E-6.*r(xMesh).*w_tmp./nu;
@@ -101,23 +95,16 @@ while max(w_tmp./w_it,[],'all')>1 %iterate until converged (within 0.5-2 times t
     Re = 2E-6.*r(xMesh).*w_it./nu;
     fRe = 24./Re + 6./(1+Re.^0.5)+0.4;
     w_it = sqrt((8E-6*r(xMesh).*9.81*1E9.*y(xMesh,zMesh))./(3E9*rho_sw.*fRe));
-    
-    
+ 
     tick=tick+1;
 end
 wWhites = w_it*24*3600; %[m/d]
-
-
 
 % Vector version for parent particles, used for differential settling
 for i = 1:K
     wVeci(i,:) = w_it(zi(i)+1,xi(i)+1);
     wVecj(i,:) = w_it(zj(i)+1,xj(i)+1);
 end
-
-
-
-
 
 %% coagulation kernels
 % Brownian motion
@@ -132,19 +119,7 @@ beta_d = 0.5*pi*(1E-6*r(xi)).^2.*abs(wVeci-wVecj); % [m^3/s], double checked
  
 beta = (beta_b + beta_s + beta_d)*3600*24; %[m^3 d^-1]
 
-
-%% beta rectilinear turbulent shear
-
-%beta = 1.3*(epsilon/nu)^0.5*(1E-6*(r(xi)+r(xj))).^3*24*3600;
-% %%
-%for i = 1:nR
-%    for j = 1:nR
-%        betaplot(i,j)= 1.3*(epsilon/nu)^0.5*(1E-6*(r(x(i))+r(x(j)))).^3*24*3600;
-%    end
-%end
 %% Fragmentation
-
-
 pfrag = linspace(0.001,0.5,nR);
 pfrag = repmat(pfrag,nD,1);
 pfrag = pfrag./(rho_sw+y(xMesh,zMesh))*1E-6;
@@ -162,216 +137,53 @@ m = mass(xMesh,zMesh) ;
 prod_tot = 1E5; %0.1 g/m2/d
 prod = zeros(size(M));
 
-%prod(:,1) = prod_tot/nD;
-prod(1,1) = 10*prod_tot/20/H;
- prod(2:3,1) = 2*prod_tot/20/H; 
- prod(4:10) = prod_tot/20/H; 
-% prod(4:10,6) = prod_tot/10/H;
-% prod(3,11)=prod_tot/10/H;
-% 
-% if nR == 20 && nD == 10
-%     load('./init/M_20_10.mat')
-%     disp('loaded M_20_10.mat')
-% elseif nR ==30 && nD ==15
-%     load('./init/M_30_15.mat')
-%     disp('loaded M_30_15.mat')
-% elseif length(beta)==1
-%     load('./init/M_20_10_beta4.mat')
-%     disp('loaded M_20_10_beta4.mat')
-%     
-% else
-    M = prod;
-    disp('without spinup')
-% end
-%load('./init/M_20_10_beta.mat')
+prod(1,1) = 10*prod_tot;
+prod(2:3,1) = 2*prod_tot; 
+prod(4:10) = prod_tot; 
 
-N = M./m;
+prod = prod/H/(sum(prod,"all")/prod_tot);
+
+M = prod;
 
 %% Transient solution 
 tic
+disp('starting simulation')
 options = odeset('NonNegative',1:length(M(:)));
-[t,dM] = ode23(@interactionsDT, [0:100000], [M(:) ],options,m,xz,bi,bj,nR,nD,q,a,b300,b301,b310,b311,f00,f01,f10,f11,alpha,beta,wWhites,L,H,prod,remin,pfrag,frag_div);
-runtime = toc        
-M = reshape(dM(end,:),nD,nR);
+[t,dM] = ode23(@interactionsDT, [0:10000], [M(:) ],options,m,xz,bi,bj,nR ...
+    ,nD,q,a,b300,b301,b310,b311,f00,f01,f10,f11,alpha,beta,wWhites,L,H, ...
+    prod,remin,pfrag,frag_div);
+runtime = toc;
+disp(['Simulation finished in ',num2str(runtime),' seconds'])
 
-RMSE = rms(dM(end,:)-dM(end-1,:))
+sim.M = reshape(dM(end,:),nD,nR);
+sim.N = sim.M./m;
+sim.RMSE = rms(dM(end,:)-dM(end-1,:));
+sim.a = a;
+sim.alpha = alpha;
+sim.epsilon = epsilon;
+sim.nR = nR;
+sim.nD = nD;
+sim.H = H;
+sim.m = m;
+sim.w = wWhites;
 
-SA.M = M;
-SA.a = a;
-SA.alpha = alpha;
-SA.epsilon = epsilon;
-%SA.beta = betaplot;
-SA.RMSE = RMSE;
-SA.wWhites = wWhites;
+
+% SA.M = M;
+% SA.a = a;
+% SA.alpha = alpha;
+% SA.epsilon = epsilon;
+% %SA.beta = betaplot;
+% SA.RMSE = RMSE;
+% SA.wWhites = wWhites;
 
 %save('./init/M_20_10.mat','M')
 
 
 %%
 
-figure
-surface(x,z,M)
-title('M transient')
-colorbar
-set(gca,'ColorScale','log')
 
 
-N = M./m;
 
-figure
-surface(x,z,N)
-title('N transient')
-colorbar
-set(gca,'ColorScale','log')
-set(gca,'ZScale','log')
-
-for i = 1:length(t)
-    MM(:,:,i) = reshape(dM(i,:),nD,nR);
 end
-
-exportDT = wWhites.*M/H;
-exportDT_x = sum(exportDT,1);
-exportFlux = sum(exportDT,'all','omitnan')*1E-3 %[mgC/m2/d]
-
-figure
-plot(x,exportDT_x)
-title('export flux DT')
-text(0.01, 0.95, ['Export flux ~ ',num2str(round(exportFlux)),'mgC/m^2/d'] ,'Units','normalized')
-xlabel('size')
-ylabel('\mu g C m^{-2} d^{-1}') 
-
-
-
-%% for annual retreat
-
-Nc = sum(N,1)*1E-6; % sum and change to #/cm^3
-
-DELTA(1:nR-1) = 1E-4*(r(2:nR)-r(1:nR-1));
-DELTA(nR) = 1E-4*r(nR+1)-r(nR);
-NNN = Nc./DELTA;
-
-
-
-slope  = @(x,b)   1E-5*x.^(-b); 
-
-monterey = @(x) 0.027*x.^(-2.965);
-
-
-figure
-loglog(2*r(x)*1E-4,NNN, 'LineWidth',2)
-hold on
-plot(2*r(x)*1E-4,slope(2*r(x)*1E-4,4))
-plot(2*r(x)*1E-4,monterey(2*r(x)*1E-4))
-title('Particle size spectrum')
-xlabel('Particle Diameter [cm]')
-ylabel('Number spectrum [# cm^{-4}]')
-legend('Size spectrum','slope = -4','monterey bay','Location','SouthWest')
-set(gca,'FontSize',16)
-
-
-%%
-N3 = N;
-N3(N3==0) = NaN;
-N3 = log(N3);
-%N3 = log10(N3);
-N3 = N3+abs(min(N3,[],'all'));
-N3(N3==0) = NaN;
-
-w_weight = sum(wWhites.*N,1)./sum(N,1);
-
-figure
-loglog(r(x),w_weight,'-','LineWidth',2) 
-hold on
-scatter(r(xMesh(:)),wWhites(:),N3(:))
-xlabel('Radius (\mu m)')
-ylabel('Sinking velocity, (m/d)')
-title('Mean sinking velocity of aggregates')
-
-
-%Weight sinking speed by particle numbers
-
-
-%% Diagnostics
-
-for i = 1:length(t)
-    Mt = reshape(dM(i,:),nD,nR);
-    [Mdt,Mremin,Mfrag] = interactionsDT(t(i),Mt(:),m,xz,bi,bj,nR,nD,q,a,b300,b301,b310,b311,f00,f01,f10,f11,alpha,beta,wWhites,L,H,prod,remin,pfrag,frag_div);
-    frag(i) = sum(Mfrag);
-    COM(i) = sum(Mdt)-sum(Mremin)+sum(Mt(:).*wWhites(:)/H)-sum(prod(:)) ;
-end
-
-figure
-plot(t,COM)
-%% w comparison
-
-B117 = 1.10; % [cm^-0.17 s^-1] (Kries & Evans 2000)
-
-B062 = (1.10^(-1/0.17))^(0.38);
-
-w_PL = @(r,eta,B) B * (2*r.*1E-4).^eta*3600*24*1E-2;
-
-W_PL117 = w_PL(r(x),1.17,B117);
-W_PL062 = w_PL(r(x),0.62,B062);
-%%
-% 
-% figure
-% loglog(r(x),W_PL117,'r-',r(x),W_PL062,'g-',r(x),W,'b-',r(x),wWhites,'m-')
-% % hold on
-% % loglog(1E-3*r(1,:),W_PL117,'r-')
-% %xlim([r(1,1) r(1,end)])
-% %ylim([0 1000])
-% legend('\eta = 1.17','\eta = 0.62', 'Stokes','Whites')
-% ylabel('Sinking velocity [m d^{-1}]')
-% xlabel('radius [\mu m]')
-
-figure
-loglog(r(x),W,'b-',r(x),wWhites,'r-')
- hold on
- loglog(r(x),W_PL117,'g-')
- loglog(r(x),W_PL062,'m-')
-%xlim([1E2 r(x(end))])
-%ylim([0 1000])
-ylabel('Sinking velocity [m d^{-1}]')
-xlabel('radius [\mu m]')
-set(gca,'FontSize', 14)
-
-%% Velocity figures
-% 
-% 
-% 
-% figure
-% surface(Re)
-% colorbar
-% %set(gca,'xscale','log')
-% set(gca,'ColorScale','log')
-% title('Re')
-% 
-% figure
-% subplot(1,3,1)
-% surface(W)
-% colorbar;
-% title('w')
-% %set(gca,'xscale','log')
-% set(gca,'ColorScale','log')
-% colormap jet
-% 
-% subplot(1,3,2)
-% surface(wWhites)
-% colorbar
-% title('w Whites approximation')
-% %set(gca,'xscale','log')
-% set(gca,'ColorScale','log')
-% colormap jet
-% 
-% subplot(1,3,3)
-% surface(W./wWhites)
-% colorbar
-% title('w:w_whites')
-% %set(gca,'xscale','log')
-%  %set(gca,'ColorScale','log')
-% colormap jet
-
-
-
 
 

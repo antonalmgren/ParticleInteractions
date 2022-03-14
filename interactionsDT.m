@@ -1,7 +1,7 @@
 function [dMdt,dMremin,dMfrag] = interactionsDT(t,M,m,xz,bi,bj,nR,nD,q,a,b300,b301,b310,b311,f00,f01,f10,f11,alpha,beta,wWhites,L,H,prod,remin,pfrag,frag_div)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
-M(M<0) = 0;
+%M(M<0) = 0;
 N = M./m(:);
 m=m(:);
 dM = zeros(size(N));
@@ -25,6 +25,9 @@ for k = 1:length(bi)
     d10 = b310(k) + 1;
     d11 = b311(k) + 1;
     
+    if d10>300
+        keyboard
+    end
     
     if length(beta) ==1;
         dN = alpha*beta*N(ii)*N(jj);
