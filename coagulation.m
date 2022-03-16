@@ -7,6 +7,8 @@ arguments
     nD (1,1)= 10; %number of density bins
     rMax (1,1) = 1E5; %[\mu m] max radius
 end
+
+simulation_time = [0:10000];
 %% constants
 rMin = 1 ; %[\mu m] min radius
 rho_sw = 1.027E-6; % density of seawater [\mug \mu m^-3] (from andy)
@@ -141,9 +143,9 @@ m = mass(xMesh,zMesh) ;
 prod_tot = 1E5; %0.1 g/m2/d
 prod = zeros(size(M));
 
-prod(1,1) = 10*prod_tot;
-prod(2:4,1) = 2*prod_tot; 
-prod(8:10,6) = 3*prod_tot; 
+prod(1,1) = prod_tot;
+prod(2:4,1) = prod_tot; 
+prod(8:10,6) = 2*prod_tot; 
 prod(9:10,7) = 2*prod_tot;
 prod(10,8) = 2*prod_tot;
 
@@ -155,7 +157,7 @@ M = prod;
 tic
 disp('starting simulation')
 options = odeset('NonNegative',1:length(M(:)));
-[t,dM] = ode23(@interactionsDT, [0:10000], [M(:) ],options,m,xz,bi,bj,nR ...
+[t,dM] = ode23(@interactionsDT, simulation_time, [M(:) ],options,m,xz,bi,bj,nR ...
     ,nD,q,a,b300,b301,b310,b311,f00,f01,f10,f11,alpha,beta,wWhites,L,H, ...
     prod,remin,pfrag,frag_div);
 runtime = toc;
@@ -176,7 +178,7 @@ sim.prod = prod;
 sim.prod_tot = prod_tot;
 sim.r = r(x);
 sim.y = y(xMesh,zMesh);
-sim.DELTA(1:nR-1) = r(x(2:nR)-x(1:nR-1));
+sim.DELTA(1:nR-1) = r(x(2:nR))-r(x(1:nR-1));
 sim.DELTA(nR) = r(nR+1)-r(nR);
 
 
