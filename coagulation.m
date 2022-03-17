@@ -145,9 +145,9 @@ prod = zeros(size(M));
 
 prod(1,1) = prod_tot;
 prod(2:4,1) = prod_tot; 
-prod(8:10,6) = 2*prod_tot; 
-prod(9:10,7) = 2*prod_tot;
-prod(10,8) = 2*prod_tot;
+prod(8:10,6) = 3*prod_tot; 
+prod(9:10,7) = 3*prod_tot;
+prod(10,8) = 3*prod_tot;
 
 prod = prod/H/(sum(prod,"all")/prod_tot);
 

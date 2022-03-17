@@ -29,10 +29,10 @@ loglog(r*2*1E-4,slope(r*2*1E-4,4))
 xlabel('diameter [cm]')
 ylabel('Number spectrum [# cm^{-4}]')
 legend('Particle spectrum','slope=-3','slope=-4')
-ylim([1E-5 1E10])
+ylim([1E-2 1E10])
 
 nexttile
-surface(r,1:nD,M)
+surface(r*2E-4,1:nD,M)
 shading flat
 title('M')
 c = colorbar;
@@ -40,7 +40,7 @@ set(gca,'ColorScale','log','xscale','log')
 c.Label.String = '\mu g C m^{-3}';
 
 nexttile
-surface(r,1:nD,N)
+surface(r*2E-4,1:nD,N)
 shading flat
 title('N')
 c = colorbar;
@@ -48,8 +48,8 @@ set(gca,'Colorscale','log','xscale','log')
 c.Label.String = '# m^{-3}';
 
 nexttile
-semilogx(r,export)
-xlabel('radius [\mu m]')
+semilogx(r*2E-4,export)
+xlabel('diameter [cm]')
 ylabel('export [% of total production]' )
 
 
