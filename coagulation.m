@@ -3,9 +3,9 @@ clear all
 close all
 % first part to be used in parameters.m
 %% constants
-rMax = 1E4; %[\mu m] max radius
+rMax = 1E5; %[\mu m] max radius
 rMin = 1 ; %[\mu m] min radius
-a = 1.9; %fractal dimension
+a = 1.8; %fractal dimension
 rho_sw = 1.027E-6; % density of seawater [\mug \mu m^-3] (from andy)
 nu = 1E-6; % [m^2 s^-1] kinematic viscosity of seawater (from andy)
 mu = nu*rho_sw*10^9;% [kg m^-1 s^-1  ] absolute viscosity (10^9 is a conversion factor for rho to kg/m^3) 
@@ -163,9 +163,9 @@ prod_tot = 1E5; %0.1 g/m2/d
 prod = zeros(size(M));
 
 %prod(:,1) = prod_tot/nD;
-prod(1,1) = 10*prod_tot/20/H;
- prod(2:3,1) = 2*prod_tot/20/H; 
- prod(4:10) = prod_tot/20/H; 
+prod(1,1) = 10*prod_tot/21/H;
+ prod(2:3,1) = 2*prod_tot/21/H; 
+ prod(4:10) = prod_tot/21/H; 
 % prod(4:10,6) = prod_tot/10/H;
 % prod(3,11)=prod_tot/10/H;
 % 
@@ -230,15 +230,15 @@ for i = 1:length(t)
 end
 
 exportDT = wWhites.*M/H;
-exportDT_x = sum(exportDT,1);
+exportDT_x = sum(exportDT,1)/prod_tot;
 exportFlux = sum(exportDT,'all','omitnan')*1E-3 %[mgC/m2/d]
 
 figure
 plot(x,exportDT_x)
 title('export flux DT')
-text(0.01, 0.95, ['Export flux ~ ',num2str(round(exportFlux)),'mgC/m^2/d'] ,'Units','normalized')
+text(0.01, 0.95, ['Export flux ~ ',num2str(round(exportFlux)),'%'] ,'Units','normalized')
 xlabel('size')
-ylabel('\mu g C m^{-2} d^{-1}') 
+ylabel('% of total production') 
 
 
 
