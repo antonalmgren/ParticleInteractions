@@ -13,19 +13,19 @@ Nc = sum(N,1)*1E-6; % sum and change to #/cm^3
 Nspec = Nc./(DELTA*1E-4);
 
 % export flux
-export = M.*w/sim.H;
-export = sum(export,1,'omitnan')/sim.prod_tot;
+export = M.*w/sim.H/sum(sim.prod,"all");
+export = sum(export,1,'omitnan')*100;
 
 slope  = @(x,b)   1E-5*x.^(-b); 
 
-figure('Position',[300,200,600,800])
-tiledlayout(4,1,"TileSpacing","tight")
+figure('Position',[300,50,600,700])
+tiledlayout(4,1,"TileSpacing","tight","Padding","compact")
 
 nexttile
 loglog(r*2*1E-4,Nspec)
 hold on
-loglog(r*2*1E-4,slope(r*2*1E-4,3))
-loglog(r*2*1E-4,slope(r*2*1E-4,4))
+aSlope3 = loglog(r*2*1E-4,slope(r*2*1E-4,3),'k--');
+aSlope4 = loglog(r*2*1E-4,slope(r*2*1E-4,4),'k:');
 xlabel('diameter [cm]')
 ylabel('Number spectrum [# cm^{-4}]')
 legend('Particle spectrum','slope=-3','slope=-4')
@@ -61,9 +61,11 @@ ylabel('export [% of total production]' )
 %     frag(i) = sum(Mfrag);
 %     COM(i) = sum(Mdt)-sum(Mremin)+sum(Mt(:).*wWhites(:)/H)-sum(prod(:)) ;
 % end
-
+% 
 % figure
 % plot(t,COM)
+% hold on
+% plot(t,frag)
 
 end
 
