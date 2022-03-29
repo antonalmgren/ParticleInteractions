@@ -26,3 +26,4 @@ save("sensitivityanalysis\a.mat","simA")
 save("sensitivityanalysis\alpha.mat","simAl")
 save("sensitivityanalysis\epsilon.mat","simE")
 
+plotSensitivityAnalysis(simA,simAl,simE)

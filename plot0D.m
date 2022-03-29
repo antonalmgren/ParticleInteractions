@@ -1,4 +1,4 @@
-function plotting(sim)
+function plot0D(sim)
 M = sim.M;
 r = sim.r;
 y = sim.y;
