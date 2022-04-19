@@ -30,6 +30,7 @@ xlabel('diameter [cm]')
 ylabel('Number spectrum [# cm^{-4}]')
 legend('Particle spectrum','slope=-3','slope=-4')
 ylim([1E-2 1E10])
+%xlim([1E-4 1E-1])
 
 nexttile
 surface(r*2E-4,1:nD,M)
@@ -38,6 +39,8 @@ title('M')
 c = colorbar;
 set(gca,'ColorScale','log','xscale','log')
 c.Label.String = '\mu g C m^{-3}';
+%xlim([1E-4 1E-1])
+
 
 nexttile
 surface(r*2E-4,1:nD,N)
@@ -46,11 +49,16 @@ title('N')
 c = colorbar;
 set(gca,'Colorscale','log','xscale','log')
 c.Label.String = '# m^{-3}';
+%xlim([1E-4 1E-1])
+
 
 nexttile
 semilogx(r*2E-4,export)
+text(2E-4,10,['Export: ',num2str(sum(sim.w.*sim.M/sim.H,'all')/sum(sim.prod,'all')*100,2),'% '])
 xlabel('diameter [cm]')
 ylabel('export [% of total production]' )
+%xlim([1E-4 1E-1])
+
 
 
 %% Diagnostics

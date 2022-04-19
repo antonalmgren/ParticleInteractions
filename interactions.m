@@ -1,7 +1,7 @@
 function [dMdt,dMremin,dMfrag] = interactions(t,M,m,xMesh,zMesh,bi,bj,nR,nD,q,a,b300,b301,b310,b311,f00,f01,f10,f11,alpha,beta,wWhites,L,H,prod,remin,pfrag,frag_div)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
-%M(M<0) = 0;
+
 N = M./m(:);
 m=m(:);
 dM = zeros(size(N));
@@ -11,9 +11,6 @@ x = xMesh(:);
 z=zMesh(:);
 
 %% Aggregation
-
-
-%N = N(:);
 
 for k = 1:length(bi)
     
@@ -39,12 +36,6 @@ for k = 1:length(bi)
     
 
     if dN > 0
-%         dM(ii) = dM(ii)-dN*m(ii);
-%         dM(jj) = dM(jj)-dN*m(jj);
-%         dM(d00) = dM(d00) + f00(k)*dN*(m(ii)+m(jj)); 
-%         dM(d01) = dM(d01) + f01(k)*dN*(m(ii)+m(jj)); 
-%         dM(d10) = dM(d10) + f10(k)*dN*(m(ii)+m(jj)); 
-%         dM(d11) = dM(d11) + f11(k)*dN*(m(ii)+m(jj));
         dM(ii) = dM(ii)-dN*mi;
         dM(jj) = dM(jj)-dN*mj;
         dM(d00) = dM(d00) + f00(k)*dN*mij; 
@@ -58,9 +49,6 @@ end
 if remin~=0
   
 for i = 1:length(N)
-%     tmp = xz(i-1);
-%     xtmp = tmp(1);
-%     ztmp = tmp(2);
     if mod(i,nD)==0
         dN_remin = remin*q^x(i) *((1-q)/(3-a))*(-z(i)*N(i));
         
@@ -83,10 +71,6 @@ end
  
 
 %% collecting
-
-if sum(dMfrag) >1E-5
-    keyboard
-end
 
 dMdt = dM +prod(:) - M.*wWhites(:)./H +dMremin +dMfrag;
 
