@@ -1,4 +1,4 @@
-function [sim] = coagulation(a,alpha,epsilon,nR,nD,rMax,tMax)
+function [sim] = coagulation(a,alpha,epsilon,nR,nD,rMax,tMax,prodCase,P,M)
 arguments
     a (1,1) {mustBeInRange(a,0,3)} = 1.8; %self similarity parameter
     alpha (1,1) {mustBeInRange(alpha,0,1)} =0.1; %stickiness
@@ -7,6 +7,9 @@ arguments
     nD (1,1)= 10; %number of density bins
     rMax (1,1) = 1E4; %[\mu m] max radius
     tMax (1,1) = 10000; % No. of timesteps
+    prodCase (1,1) = 4; % production structure, set in production.m
+    P (:,:) = [ 1064E3,1302E3 ,1912E3 ,1859E3 ,4904E3 ;1,1,1,6.41,7.92];; %production [\mug C/ m^2 /d ]
+    M (:,:) = zeros(nD,nR); %initial condition [\mug C/ m^3 ]
 end
 
     simulation_time = [0:tMax];
@@ -164,21 +167,16 @@ frag_div = 0.5;
 % State variables and production
 % -------------------------------------------------------------------------
 N = zeros(nD,nR); %number of particles/m^3 
-M = zeros(nD,nR); % [\mug C/ m^3 ]
+%M = zeros(nD,nR); % [\mug C/ m^3 ]
 m = mass(xMesh,zMesh) ;
-[prod,prod_tot] = production(M,1,H);
-% prod_tot = 1E5; % Total production (0.1 g/m2/d) 
-% prod = zeros(size(M));
-% 
-% prod(1,1) = prod_tot;
-% prod(2:4,1) = prod_tot; 
-% prod(8:10,6) = 3*prod_tot; 
-% prod(9:10,7) = 3*prod_tot;
-% prod(10,8) = 3*prod_tot;
-% 
-% prod = prod/H/(sum(prod,"all")/prod_tot);
 
-M = prod;
+
+[prod,prod_tot] = production(M,prodCase,H,rMin,deltaR,deltaRho,q,rho_sw,P);
+
+
+if sum(M,"all")==0
+    M = prod;
+end
 
 %% ------------------------------------------------------------------------
 % Transient solution 
@@ -215,6 +213,8 @@ sim.y = y(xMesh,zMesh);
 sim.DELTA(1:nR-1) = r(x(2:nR))-r(x(1:nR-1));
 sim.DELTA(nR) = r(nR+1)-r(nR);
 sim.Mtrans = dM;
+sim.remin = remin;
+sim.export = sim.M.*sim.w/sim.H;
 
 %% ------------------------------------------------------------------------
 % Diagnostics

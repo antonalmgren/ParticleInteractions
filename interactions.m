@@ -1,5 +1,6 @@
 function [dMdt,dMremin,dMfrag] = interactions(t,M,m,xMesh,zMesh,bi,bj,nR,nD,q,a,b300,b301,b310,b311,f00,f01,f10,f11,alpha,beta,wWhites,L,H,prod,remin,pfrag,frag_div)
-%UNTITLED Summary of this function goes here
+% This function perform aggregation, degradation/dissolution and removal of
+% marine particles in the surface layer of the ocean.
 %   Detailed explanation goes here
 
 N = M./m(:);
@@ -28,12 +29,9 @@ for k = 1:length(bi)
         keyboard
     end
     
-    if length(beta) ==1;
-        dN = alpha*beta*N(ii)*N(jj);
-    else
-        dN = alpha*beta(k)*N(ii)*N(jj);
-    end
-    
+
+    dN = alpha*beta(k)*N(ii)*N(jj);
+   
 
     if dN > 0
         dM(ii) = dM(ii)-dN*mi;
