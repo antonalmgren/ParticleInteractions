@@ -8,7 +8,7 @@ arguments
     rMax (1,1) = 1E4; %[\mu m] max radius
     tMax (1,1) = 10000; % No. of timesteps
     prodCase (1,1) = 4; % production structure, set in production.m
-    P (:,:) = [ 1064E3,1302E3 ,1912E3 ,1859E3 ,4904E3 ;1,1,1,6.41,7.92];; %production [\mug C/ m^2 /d ]
+    P (:,:) = [ 1064E3,1302E3 ,1912E3 ,1859E3 ,4904E3 ;1,1,1,6.41,7.92;1088.4,1088.4,1088.4,1233.3,1100]; %production [\mug C/ m^2 /d ]
     M (:,:) = zeros(nD,nR); %initial condition [\mug C/ m^3 ]
 end
 
