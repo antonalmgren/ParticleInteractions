@@ -5,8 +5,8 @@ alpha = [0.1,0.3,0.5,0.7];
 epsilon = [1E-4,1E-5,1E-6,1E-7];
 nR = 30;
 nD = 20;
-rMax = 1E4;
-tMax = 50000;
+rMax = 1E5;
+tMax = 30000;
 
 for i = 1:length(a)
 

@@ -210,7 +210,7 @@ sim.r = r(x);
 sim.y = y(xMesh,zMesh);
 sim.DELTA(1:nR-1) = r(x(2:nR))-r(x(1:nR-1));
 sim.DELTA(nR) = r(nR+1)-r(nR);
-sim.Mtrans = dM;
+%sim.Mtrans = dM;
 sim.remin = remin;
 sim.export = sim.M.*sim.w/sim.H;
 
