@@ -33,7 +33,7 @@ T = 281; %temperature
 % Grid and combination variables
 % -------------------------------------------------------------------------
 deltaR = exp(log(rMax)/(nR-1)); % size step
-deltaRho = 0.8*rho_sw/(nD-1);% 0.6*rho_sw/nD; %density step
+deltaRho = 2*rho_sw/(nD-1);% 0.6*rho_sw/nD; %density step
 
 q = deltaR^(a-3); % is this still valid when a is not part of delta?
 
@@ -210,7 +210,7 @@ sim.r = r(x);
 sim.y = y(xMesh,zMesh);
 sim.DELTA(1:nR-1) = r(x(2:nR))-r(x(1:nR-1));
 sim.DELTA(nR) = r(nR+1)-r(nR);
-%sim.Mtrans = dM;
+sim.Mtrans = dM;
 sim.remin = remin;
 sim.export = sim.M.*sim.w/sim.H;
 

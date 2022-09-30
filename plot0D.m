@@ -9,31 +9,33 @@ w = sim.w;
 nD = sim.nD;
 
 %calculate spectrum
-Nc = sum(N,1)*1E-6; % sum and change to #/cm^3
-Nspec = Nc./(DELTA*1E-4);
+%Nc = sum(N,1)*1E-6; % sum and change to #/cm^3
+%Nspec = Nc./(DELTA*1E-4); 
+Nc = sum(N,1); % #/m^3
+Nspec = Nc./(DELTA); 
 
 % export flux
 export = M.*w/sim.H/sum(sim.prod,"all");
 export = sum(export,1,'omitnan')*100;
 
-slope  = @(x,b)   1E-5*x.^(-b); 
+slope  = @(x,b)  1E11* x.^(-b); 
 
 figure('Position',[300,50,600,700])
 tiledlayout(4,1,"TileSpacing","tight","Padding","compact")
 
 nexttile
-loglog(r*2*1E-4,Nspec)
+loglog(r,Nspec)
 hold on
-aSlope3 = loglog(r*2*1E-4,slope(r*2*1E-4,3),'k--');
-aSlope4 = loglog(r*2*1E-4,slope(r*2*1E-4,4),'k:');
-xlabel('diameter [cm]')
-ylabel('Number spectrum [# cm^{-4}]')
+aSlope3 = loglog(r,slope(r,3),'k--');
+aSlope4 = loglog(r,slope(r,4),'k:');
+xlabel('radius [\mu m]')
+ylabel('Number spectrum [# m^{-3} \mu^{-1}]')
 legend('Particle spectrum','slope=-3','slope=-4')
-ylim([1E-2 1E10])
+ylim([1E-5 1E14])
 %xlim([1E-4 1E-1])
 
 nexttile
-surface(r*2E-4,1:nD,M)
+surface(r,1:nD,M)
 shading flat
 title('M')
 c = colorbar;
@@ -43,7 +45,7 @@ c.Label.String = '\mu g C m^{-3}';
 
 
 nexttile
-surface(r*2E-4,1:nD,N)
+surface(r,1:nD,N)
 shading flat
 title('N')
 c = colorbar;
@@ -53,9 +55,9 @@ c.Label.String = '# m^{-3}';
 
 
 nexttile
-semilogx(r*2E-4,export)
-text(2E-4,10,['Export: ',num2str(sum(sim.w.*sim.M/sim.H,'all')/sum(sim.prod,'all')*100,2),'% '])
-xlabel('diameter [cm]')
+semilogx(r,export)
+text(100,10,['Export: ',num2str(sum(sim.w.*sim.M/sim.H,'all')/sum(sim.prod,'all')*100,2),'% '])
+xlabel('diameter [\mu m]')
 ylabel('export [% of total production]' )
 %xlim([1E-4 1E-1])
 
